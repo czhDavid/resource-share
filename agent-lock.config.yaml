@@ -1,0 +1,8 @@
+# agent-lock resource configuration
+# Define the resources that agents can lock.
+# Only resources listed here can be acquired.
+
+resources:
+  application:
+    description: "Before you run an application using make up or docker composer, you need to acquire the application lock. This ensures that only one instance of the application is running at a time."
+

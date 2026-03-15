@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { acquire, release, status, clear } from "./lock-engine.js";
+import { init } from "./init.js";
 
 /**
  * Format a duration in milliseconds as a human-readable string.
@@ -228,6 +229,35 @@ program
       mode: opts.force ? "force" : "stale-only",
       message: `Cleared ${result.cleared.length} lock(s)`,
     }, 0);
+  });
+
+// ─── init ───────────────────────────────────────────────
+program
+  .command("init")
+  .description("Set up agent-lock skill and config in the current project")
+  .option("--force", "Overwrite existing files", false)
+  .option("--dir <path>", "Target project directory", process.cwd())
+  .action((opts: { force: boolean; dir: string }) => {
+    const result = init(opts.dir, opts.force);
+
+    if (result.created.length === 0 && result.skipped.length > 0) {
+      output({
+        ok: true,
+        action: "init",
+        message: "All files already exist. Use --force to overwrite.",
+        skipped: result.skipped,
+      }, 0);
+    } else {
+      output({
+        ok: true,
+        action: "init",
+        created: result.created,
+        skipped: result.skipped,
+        message: result.created.length > 0
+          ? `Created ${result.created.length} file(s)`
+          : "Nothing to do",
+      }, 0);
+    }
   });
 
 // ─── Parse and run ───────────────────────────────────────

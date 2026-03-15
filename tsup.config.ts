@@ -4,7 +4,7 @@ export default defineConfig([
   {
     entry: ["src/index.ts"],
     format: ["esm"],
-    target: "node20",
+    target: "node22",
     outDir: "dist",
     clean: true,
     dts: true,
@@ -14,7 +14,19 @@ export default defineConfig([
   {
     entry: ["src/cli.ts"],
     format: ["esm"],
-    target: "node20",
+    target: "node22",
+    outDir: "dist",
+    dts: false,
+    sourcemap: true,
+    splitting: false,
+    banner: {
+      js: "#!/usr/bin/env node",
+    },
+  },
+  {
+    entry: ["src/mcp-server.ts"],
+    format: ["esm"],
+    target: "node22",
     outDir: "dist",
     dts: false,
     sourcemap: true,
