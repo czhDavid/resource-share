@@ -1,4 +1,4 @@
-import type { LockMeta, QueueEntry } from "./types.js";
+import type { LockMeta, QueueEntry } from './types.js';
 
 /**
  * Check whether a process with the given PID is alive.

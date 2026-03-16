@@ -1,7 +1,7 @@
 /**
  * agent-lock — core library exports
  */
-export { acquire, release, status, clear } from "./lock-engine.js";
+export { acquire, release, status, clear } from './lock-engine.js';
 export type {
   LockMeta,
   QueueEntry,
@@ -10,6 +10,6 @@ export type {
   ResourceStatus,
   StatusResult,
   ClearResult,
-} from "./types.js";
-export { resolveConfig, type Config } from "./config.js";
-export { isPidAlive, isLockExpired, isLockStale, pruneDeadFromQueue } from "./pid.js";
+} from './types.js';
+export { resolveConfig, type Config } from './config.js';
+export { isPidAlive, isLockExpired, isLockStale, pruneDeadFromQueue } from './pid.js';

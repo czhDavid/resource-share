@@ -1,20 +1,20 @@
-import { execFile } from "node:child_process";
-import { mkdtempSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { promisify } from "node:util";
-import { spawn } from "node:child_process";
+import { execFile } from 'node:child_process';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { promisify } from 'node:util';
+import { spawn } from 'node:child_process';
 
 // Engine-level imports for tests that need live PIDs
-import { acquire, release, status, clear } from "../src/lock-engine.js";
-import type { Config } from "../src/config.js";
+import { acquire, release, status, clear } from '../src/lock-engine.js';
+import type { Config } from '../src/config.js';
 
 export { acquire, release, status, clear };
 export type { Config };
 
 const execFileAsync = promisify(execFile);
 
-export const CLI_PATH = join(import.meta.dirname, "..", "dist", "cli.js");
+export const CLI_PATH = join(import.meta.dirname, '..', 'dist', 'cli.js');
 
 /**
  * Run the CLI with the given args and a temp lock directory.
@@ -25,7 +25,7 @@ export async function runCli(
   lockDir: string,
 ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
   try {
-    const { stdout, stderr } = await execFileAsync("node", [CLI_PATH, ...args], {
+    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], {
       env: { ...process.env, AGENT_LOCK_DIR: lockDir },
       timeout: 10_000,
     });
@@ -33,8 +33,8 @@ export async function runCli(
   } catch (err: unknown) {
     const e = err as { stdout?: string; stderr?: string; code?: number };
     return {
-      stdout: e.stdout ?? "",
-      stderr: e.stderr ?? "",
+      stdout: e.stdout ?? '',
+      stderr: e.stderr ?? '',
       exitCode: e.code ?? 1,
     };
   }
@@ -61,7 +61,7 @@ export async function runCliJson(
  * Create a temporary lock directory for test isolation.
  */
 export function makeTempDir(): string {
-  return mkdtempSync(join(tmpdir(), "agent-lock-test-"));
+  return mkdtempSync(join(tmpdir(), 'agent-lock-test-'));
 }
 
 /**
@@ -77,13 +77,13 @@ export function makeConfig(lockDir: string, defaultTtl: number = 7200): Config {
  * Caller must kill it when done.
  */
 export function spawnLongLived(): { pid: number; kill: () => void } {
-  const child = spawn("sleep", ["60"], { stdio: "ignore", detached: true });
+  const child = spawn('sleep', ['60'], { stdio: 'ignore', detached: true });
   const pid = child.pid!;
   return {
     pid,
     kill: () => {
       try {
-        child.kill("SIGTERM");
+        child.kill('SIGTERM');
       } catch {
         // Already dead
       }

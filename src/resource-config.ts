@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
-import { parse as parseYaml } from "yaml";
+import { readFileSync } from 'node:fs';
+import { parse as parseYaml } from 'yaml';
 
 export interface ResourceDef {
   description: string;
@@ -14,17 +14,17 @@ export interface ResourceConfig {
  * Path is resolved from AGENT_LOCK_CONFIG env var.
  */
 export function loadResourceConfig(configPath: string): ResourceConfig {
-  const raw = readFileSync(configPath, "utf-8");
+  const raw = readFileSync(configPath, 'utf-8');
   const parsed = parseYaml(raw);
 
-  if (!parsed || typeof parsed !== "object" || !parsed.resources) {
+  if (!parsed || typeof parsed !== 'object' || !parsed.resources) {
     throw new Error(`Invalid config: missing "resources" key in ${configPath}`);
   }
 
   const resources: Record<string, ResourceDef> = {};
 
   for (const [name, value] of Object.entries(parsed.resources)) {
-    if (!value || typeof value !== "object" || !("description" in (value as object))) {
+    if (!value || typeof value !== 'object' || !('description' in (value as object))) {
       throw new Error(`Invalid config: resource "${name}" must have a "description" field`);
     }
     resources[name] = { description: (value as { description: string }).description };
