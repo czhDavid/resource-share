@@ -36,11 +36,11 @@ Acquire a lock on a resource. If the resource is already locked, the holder is a
 
 **Options:**
 
-| Option | Required | Description |
-| --- | --- | --- |
-| --holder <id> | Yes | Identifier for the agent acquiring the lock |
-| --reason <reason> | No | Reason for acquiring the lock |
-| --ttl <seconds> | No | Time-to-live in seconds (overrides default) |
+| Option            | Required | Description                                 |
+| ----------------- | -------- | ------------------------------------------- |
+| --holder <id>     | Yes      | Identifier for the agent acquiring the lock |
+| --reason <reason> | No       | Reason for acquiring the lock               |
+| --ttl <seconds>   | No       | Time-to-live in seconds (overrides default) |
 
 **Example — lock acquired:**
 
@@ -79,9 +79,9 @@ Release a lock on a resource. Only the current holder can release their lock.
 
 **Options:**
 
-| Option | Required | Description |
-| --- | --- | --- |
-| --holder <id> | Yes | Identifier for the agent releasing the lock |
+| Option        | Required | Description                                 |
+| ------------- | -------- | ------------------------------------------- |
+| --holder <id> | Yes      | Identifier for the agent releasing the lock |
 
 **Example — released:**
 
@@ -178,9 +178,9 @@ Clear stale locks (from dead processes), or all locks with `--force`.
 
 **Options:**
 
-| Option | Required | Description |
-| --- | --- | --- |
-| --force | No | Remove all locks regardless of status |
+| Option  | Required | Description                           |
+| ------- | -------- | ------------------------------------- |
+| --force | No       | Remove all locks regardless of status |
 
 **Example:**
 
@@ -214,18 +214,18 @@ agent-lock clear --force
 
 ## Exit Codes
 
-| Code | Meaning |
-| --- | --- |
-| 0 | Success |
-| 1 | Lock contention (queued) or resource not found |
-| 2 | Usage or validation error |
+| Code | Meaning                                        |
+| ---- | ---------------------------------------------- |
+| 0    | Success                                        |
+| 1    | Lock contention (queued) or resource not found |
+| 2    | Usage or validation error                      |
 
 ## Configuration
 
-| Environment Variable | Description | Default |
-| --- | --- | --- |
-| AGENT_LOCK_DIR | Directory for lock files | /tmp/agent-locks |
-| AGENT_LOCK_TTL | Default TTL in seconds | 7200 |
+| Environment Variable | Description              | Default          |
+| -------------------- | ------------------------ | ---------------- |
+| AGENT_LOCK_DIR       | Directory for lock files | /tmp/agent-locks |
+| AGENT_LOCK_TTL       | Default TTL in seconds   | 7200             |
 
 ## How It Works
 
@@ -244,10 +244,10 @@ Set up the agent-lock skill and resource config in a project. This creates the C
 
 **Options:**
 
-| Option | Required | Description |
-| --- | --- | --- |
-| --force | No | Overwrite existing files |
-| --dir <path> | No | Target project directory (defaults to cwd) |
+| Option       | Required | Description                                |
+| ------------ | -------- | ------------------------------------------ |
+| --force      | No       | Overwrite existing files                   |
+| --dir <path> | No       | Target project directory (defaults to cwd) |
 
 **Example:**
 
@@ -259,10 +259,7 @@ agent-lock init
 {
   "ok": true,
   "action": "init",
-  "created": [
-    ".claude/skills/agent-lock-guard/SKILL.md",
-    "agent-lock.config.yaml"
-  ],
+  "created": [".claude/skills/agent-lock-guard/SKILL.md", "agent-lock.config.yaml"],
   "skipped": [],
   "message": "Created 2 file(s)"
 }

@@ -10,7 +10,7 @@ export interface Config {
   defaultTtl: number;
 }
 
-const DEFAULT_LOCK_DIR = "/tmp/agent-locks";
+const DEFAULT_LOCK_DIR = '/tmp/agent-locks';
 const DEFAULT_TTL = 7200;
 
 export function resolveConfig(): Config {

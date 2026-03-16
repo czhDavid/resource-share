@@ -24,19 +24,19 @@ export interface QueueEntry {
  * Result of an acquire operation.
  */
 export interface AcquireResult {
-  status: "acquired" | "queued";
+  status: 'acquired' | 'queued';
   resource: string;
   holder: string;
   message: string;
   position?: number; // present when status is "queued"
-  lock?: LockMeta;   // present when status is "acquired"
+  lock?: LockMeta; // present when status is "acquired"
 }
 
 /**
  * Result of a release operation.
  */
 export interface ReleaseResult {
-  status: "released" | "not_found";
+  status: 'released' | 'not_found';
   resource: string;
   holder: string;
   message: string;
@@ -63,7 +63,7 @@ export interface StatusResult {
  * Result of a clear operation.
  */
 export interface ClearResult {
-  status: "cleared" | "has_active_locks";
+  status: 'cleared' | 'has_active_locks';
   cleared: string[];
   active: string[];
   message: string;

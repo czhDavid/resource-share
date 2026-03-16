@@ -1,6 +1,6 @@
-import { mkdir, readFile, writeFile, rm, readdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { mkdir, readFile, writeFile, rm, readdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
  * Attempt to atomically create a lock directory.
@@ -15,7 +15,7 @@ export async function atomicMkdir(dirPath: string): Promise<boolean> {
     await mkdir(dirPath, { recursive: false });
     return true;
   } catch (err: unknown) {
-    if (err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "EEXIST") {
+    if (err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'EEXIST') {
       return false;
     }
     throw err;
@@ -34,10 +34,10 @@ export async function ensureDir(dirPath: string): Promise<void> {
  */
 export async function readJson<T>(filePath: string): Promise<T | null> {
   try {
-    const data = await readFile(filePath, "utf-8");
+    const data = await readFile(filePath, 'utf-8');
     return JSON.parse(data) as T;
   } catch (err: unknown) {
-    if (err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "ENOENT") {
+    if (err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'ENOENT') {
       return null;
     }
     throw err;
@@ -48,7 +48,7 @@ export async function readJson<T>(filePath: string): Promise<T | null> {
  * Write an object as JSON to a file.
  */
 export async function writeJson<T>(filePath: string, data: T): Promise<void> {
-  await writeFile(filePath, JSON.stringify(data, null, 2) + "\n", "utf-8");
+  await writeFile(filePath, JSON.stringify(data, null, 2) + '\n', 'utf-8');
 }
 
 /**
@@ -70,14 +70,14 @@ export function resourceDir(lockDir: string, resource: string): string {
  * Get the path to a resource's meta.json.
  */
 export function metaPath(lockDir: string, resource: string): string {
-  return join(lockDir, `${resource}.lock`, "meta.json");
+  return join(lockDir, `${resource}.lock`, 'meta.json');
 }
 
 /**
  * Get the path to a resource's queue.json.
  */
 export function queuePath(lockDir: string, resource: string): string {
-  return join(lockDir, `${resource}.lock`, "queue.json");
+  return join(lockDir, `${resource}.lock`, 'queue.json');
 }
 
 /**
@@ -91,6 +91,6 @@ export async function listResources(lockDir: string): Promise<string[]> {
   }
   const entries = await readdir(lockDir, { withFileTypes: true });
   return entries
-    .filter((e) => e.isDirectory() && e.name.endsWith(".lock"))
-    .map((e) => e.name.replace(/\.lock$/, ""));
+    .filter((e) => e.isDirectory() && e.name.endsWith('.lock'))
+    .map((e) => e.name.replace(/\.lock$/, ''));
 }

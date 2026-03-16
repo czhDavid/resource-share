@@ -6,9 +6,9 @@ import type {
   ResourceStatus,
   StatusResult,
   ClearResult,
-} from "./types.js";
-import { resolveConfig, type Config } from "./config.js";
-import { isLockStale, pruneDeadFromQueue } from "./pid.js";
+} from './types.js';
+import { resolveConfig, type Config } from './config.js';
+import { isLockStale, pruneDeadFromQueue } from './pid.js';
 import {
   atomicMkdir,
   ensureDir,
@@ -19,7 +19,7 @@ import {
   metaPath,
   queuePath,
   listResources,
-} from "./fs-utils.js";
+} from './fs-utils.js';
 
 /**
  * Read the queue for a resource, returning a bare array.
@@ -58,7 +58,7 @@ async function promoteNextInQueue(
     resource,
     holder: next.holder,
     pid: next.pid,
-    reason: "",
+    reason: '',
     acquired_at: Date.now(),
     ttl,
   };
@@ -116,7 +116,7 @@ export async function acquire(
     await writeQueue(cfg.lockDir, resource, []);
 
     return {
-      status: "acquired",
+      status: 'acquired',
       resource,
       holder,
       message: `Lock acquired on "${resource}"`,
@@ -139,7 +139,7 @@ export async function acquire(
     await writeJson(metaPath(cfg.lockDir, resource), refreshed);
 
     return {
-      status: "acquired",
+      status: 'acquired',
       resource,
       holder,
       message: `Lock refreshed on "${resource}" (re-entrant)`,
@@ -160,7 +160,12 @@ export async function acquire(
 
     if (existingQueue.length > 0 && (callerQueueIndex < 0 || callerQueueIndex > 0)) {
       // Someone else is first in queue — they get the lock, not the caller
-      const promoted = await promoteNextInQueue(cfg.lockDir, resource, existingQueue, cfg.defaultTtl);
+      const promoted = await promoteNextInQueue(
+        cfg.lockDir,
+        resource,
+        existingQueue,
+        cfg.defaultTtl,
+      );
 
       if (promoted) {
         // Now enqueue the caller (remove from queue first if already there)
@@ -171,14 +176,12 @@ export async function acquire(
           enqueued_at: Date.now(),
         });
         // Sort FIFO
-        queueWithoutCaller.sort(
-          (a, b) => a.enqueued_at - b.enqueued_at,
-        );
+        queueWithoutCaller.sort((a, b) => a.enqueued_at - b.enqueued_at);
         await writeQueue(cfg.lockDir, resource, queueWithoutCaller);
 
         const position = queueWithoutCaller.findIndex((e) => e.holder === holder) + 1;
         return {
-          status: "queued",
+          status: 'queued',
           resource,
           holder,
           message: `Resource "${resource}" is locked by "${promoted.meta.holder}" (promoted from queue). Added to queue at position ${position}`,
@@ -203,7 +206,7 @@ export async function acquire(
     await writeQueue(cfg.lockDir, resource, remainingQueue);
 
     return {
-      status: "acquired",
+      status: 'acquired',
       resource,
       holder,
       message: `Lock acquired on "${resource}" (stale lock cleared)`,
@@ -236,9 +239,7 @@ export async function acquire(
   }
 
   // Sort by enqueued_at for FIFO ordering
-  liveQueue.sort(
-    (a, b) => a.enqueued_at - b.enqueued_at,
-  );
+  liveQueue.sort((a, b) => a.enqueued_at - b.enqueued_at);
 
   await writeQueue(cfg.lockDir, resource, liveQueue);
 
@@ -246,7 +247,7 @@ export async function acquire(
   const position = liveQueue.findIndex((e) => e.holder === holder) + 1;
 
   return {
-    status: "queued",
+    status: 'queued',
     resource,
     holder,
     message: `Resource "${resource}" is locked by "${meta!.holder}". Added to queue at position ${position}`,
@@ -272,7 +273,7 @@ export async function release(
 
   if (!meta) {
     return {
-      status: "not_found",
+      status: 'not_found',
       resource,
       holder,
       message: `No lock found for resource "${resource}"`,
@@ -295,7 +296,7 @@ export async function release(
         resource,
         holder: next.holder,
         pid: next.pid,
-        reason: "",
+        reason: '',
         acquired_at: Date.now(),
         ttl: cfg.defaultTtl,
       };
@@ -307,7 +308,7 @@ export async function release(
     }
 
     return {
-      status: "released",
+      status: 'released',
       resource,
       holder,
       message: `Lock on "${resource}" released by "${holder}"`,
@@ -321,7 +322,7 @@ export async function release(
   if (filteredQueue.length !== queue.length) {
     await writeQueue(cfg.lockDir, resource, filteredQueue);
     return {
-      status: "released",
+      status: 'released',
       resource,
       holder,
       message: `"${holder}" removed from queue for "${resource}"`,
@@ -329,7 +330,7 @@ export async function release(
   }
 
   return {
-    status: "not_found",
+    status: 'not_found',
     resource,
     holder,
     message: `"${holder}" does not hold the lock on "${resource}" and is not in the queue`,
@@ -342,10 +343,7 @@ export async function release(
  * - Prunes dead PIDs from queues during status checks.
  * - If a lock is stale, it is cleaned up and the next queued agent auto-acquires.
  */
-export async function status(
-  resource?: string,
-  config?: Config,
-): Promise<StatusResult> {
+export async function status(resource?: string, config?: Config): Promise<StatusResult> {
   const cfg = config ?? resolveConfig();
 
   if (resource) {
@@ -366,10 +364,7 @@ export async function status(
 /**
  * Get status for a single resource, pruning stale locks and dead queue entries.
  */
-async function getResourceStatus(
-  resource: string,
-  cfg: Config,
-): Promise<ResourceStatus> {
+async function getResourceStatus(resource: string, cfg: Config): Promise<ResourceStatus> {
   let meta = await readJson<LockMeta>(metaPath(cfg.lockDir, resource));
   let queue = pruneDeadFromQueue(await readQueue(cfg.lockDir, resource));
 
@@ -423,10 +418,7 @@ async function getResourceStatus(
  * --force: Remove all locks regardless of status.
  * default: Only remove locks with dead PIDs or expired TTLs.
  */
-export async function clear(
-  force: boolean = false,
-  config?: Config,
-): Promise<ClearResult> {
+export async function clear(force: boolean = false, config?: Config): Promise<ClearResult> {
   const cfg = config ?? resolveConfig();
   const resources = await listResources(cfg.lockDir);
 
@@ -446,7 +438,7 @@ export async function clear(
 
   if (active.length > 0 && !force) {
     return {
-      status: "has_active_locks",
+      status: 'has_active_locks',
       cleared,
       active,
       message: `Cleared ${cleared.length} stale lock(s). ${active.length} active lock(s) remain. Use --force to clear all.`,
@@ -454,7 +446,7 @@ export async function clear(
   }
 
   return {
-    status: "cleared",
+    status: 'cleared',
     cleared,
     active: [],
     message: `Cleared ${cleared.length} lock(s)`,

@@ -1,5 +1,5 @@
-import { mkdirSync, writeFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 const SKILL_MD = `---
 name: agent-lock-guard
@@ -61,25 +61,25 @@ export function init(targetDir: string, force: boolean): InitResult {
   const created: string[] = [];
   const skipped: string[] = [];
 
-  const skillDir = join(targetDir, ".claude", "skills", "agent-lock-guard");
-  const skillPath = join(skillDir, "SKILL.md");
-  const configPath = join(targetDir, "agent-lock.config.yaml");
+  const skillDir = join(targetDir, '.claude', 'skills', 'agent-lock-guard');
+  const skillPath = join(skillDir, 'SKILL.md');
+  const configPath = join(targetDir, 'agent-lock.config.yaml');
 
   // Write SKILL.md
   if (force || !existsSync(skillPath)) {
     mkdirSync(skillDir, { recursive: true });
-    writeFileSync(skillPath, SKILL_MD, "utf-8");
-    created.push(".claude/skills/agent-lock-guard/SKILL.md");
+    writeFileSync(skillPath, SKILL_MD, 'utf-8');
+    created.push('.claude/skills/agent-lock-guard/SKILL.md');
   } else {
-    skipped.push(".claude/skills/agent-lock-guard/SKILL.md");
+    skipped.push('.claude/skills/agent-lock-guard/SKILL.md');
   }
 
   // Write config
   if (force || !existsSync(configPath)) {
-    writeFileSync(configPath, CONFIG_YAML, "utf-8");
-    created.push("agent-lock.config.yaml");
+    writeFileSync(configPath, CONFIG_YAML, 'utf-8');
+    created.push('agent-lock.config.yaml');
   } else {
-    skipped.push("agent-lock.config.yaml");
+    skipped.push('agent-lock.config.yaml');
   }
 
   return { created, skipped };
