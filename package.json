@@ -4,6 +4,10 @@
   "description": "File-based CLI tool for AI agent resource coordination using filesystem locks and FIFO queue",
   "type": "module",
   "main": "dist/index.js",
+  "files": [
+    "dist",
+    "skills"
+  ],
   "bin": {
     "agent-lock": "dist/cli.js"
   },

@@ -1,47 +1,15 @@
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const SKILL_MD = `---
-name: agent-lock-guard
-description: Use PROACTIVELY before running any command that starts services, modifies shared state, or uses shared infrastructure (e.g. make up, make down, docker compose, database migrations, deploy scripts). Coordinates multiple Claude Code instances so only one uses a shared resource at a time. Also use when you encounter port conflicts, "already running" errors, or resource contention that suggests another instance is active.
-user-invocable: false
----
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-# Agent Lock Guard — Shared Resource Coordination
-
-Multiple Claude Code instances may run simultaneously (in worktrees or separate sessions). When they access shared resources (Docker ports, databases, deploy pipelines), conflicts occur. This skill coordinates access using the agent-lock MCP tools.
-
-## Before running any command that uses a shared resource
-
-1. **List available resources** by calling the \`agent_lock_resources\` MCP tool. Read each resource description carefully — if your planned command matches any resource, you must lock it.
-
-2. **Acquire the lock** by calling \`agent_lock_acquire\` with:
-   - \`resource\`: the resource name from the list
-   - \`holder\`: a unique identifier for this session (e.g. your worktree name or session ID)
-   - \`reason\`: what you are about to do
-
-3. **Check the result**:
-   - If status is \`acquired\` — proceed with your command.
-   - If status is \`queued\` — **STOP. Do NOT run the command.** Inform the user:
-     > "Another agent holds the lock on \`<resource>\`. You are at queue position \`<position>\`. Wait for them to finish, or ask the user to check with \`agent_lock_status\`."
-
-4. **After your command completes** (success or failure), immediately call \`agent_lock_release\` with the same \`resource\` and \`holder\`.
-
-## When you encounter errors suggesting contention
-
-If you see errors like "port already in use", "container name conflict", "address already in use", "resource busy", or similar:
-
-1. Call \`agent_lock_status\` to check if another agent holds a relevant lock.
-2. Do NOT try to force-fix the error (killing processes, changing ports, force-removing containers).
-3. Inform the user about the conflict.
-
-## Important rules
-
-- **Always check before starting.** Never skip the lock check.
-- **Always release when done.** Do not leave locks held after your task completes.
-- **Never force-clear another agent's lock.** Only use \`agent_lock_clear\` if the user explicitly asks.
-- If a lock acquire returns \`queued\`, do NOT proceed — wait or inform the user.
-`;
+function readSkillMd(): string {
+  // In dist/, the skill file is at ../skills/SKILL.md relative to the compiled JS
+  const skillSrc = join(__dirname, '..', 'skills', 'SKILL.md');
+  return readFileSync(skillSrc, 'utf-8');
+}
 
 const CONFIG_YAML = `# agent-lock resource configuration
 # Define the resources that agents can lock.
@@ -51,6 +19,17 @@ resources:
   application:
     description: "Before you run an application using make up or docker compose, you need to acquire the application lock. This ensures that only one instance of the application is running at a time."
 `;
+
+interface McpJsonConfig {
+  mcpServers: Record<
+    string,
+    {
+      command: string;
+      args: string[];
+      env?: Record<string, string>;
+    }
+  >;
+}
 
 interface InitResult {
   created: string[];
@@ -64,11 +43,12 @@ export function init(targetDir: string, force: boolean): InitResult {
   const skillDir = join(targetDir, '.claude', 'skills', 'agent-lock-guard');
   const skillPath = join(skillDir, 'SKILL.md');
   const configPath = join(targetDir, 'agent-lock.config.yaml');
+  const mcpJsonPath = join(targetDir, '.mcp.json');
 
   // Write SKILL.md
   if (force || !existsSync(skillPath)) {
     mkdirSync(skillDir, { recursive: true });
-    writeFileSync(skillPath, SKILL_MD, 'utf-8');
+    writeFileSync(skillPath, readSkillMd(), 'utf-8');
     created.push('.claude/skills/agent-lock-guard/SKILL.md');
   } else {
     skipped.push('.claude/skills/agent-lock-guard/SKILL.md');
@@ -80,6 +60,42 @@ export function init(targetDir: string, force: boolean): InitResult {
     created.push('agent-lock.config.yaml');
   } else {
     skipped.push('agent-lock.config.yaml');
+  }
+
+  // Write or merge .mcp.json
+  const agentLockEntry = {
+    command: 'npx',
+    args: ['-y', 'agent-lock', 'mcp'],
+    env: {
+      AGENT_LOCK_CONFIG: './agent-lock.config.yaml',
+    },
+  };
+
+  if (force || !existsSync(mcpJsonPath)) {
+    const mcpConfig: McpJsonConfig = {
+      mcpServers: {
+        'agent-lock': agentLockEntry,
+      },
+    };
+    writeFileSync(mcpJsonPath, JSON.stringify(mcpConfig, null, 2) + '\n', 'utf-8');
+    created.push('.mcp.json');
+  } else {
+    // Merge into existing .mcp.json
+    try {
+      const existing: McpJsonConfig = JSON.parse(readFileSync(mcpJsonPath, 'utf-8'));
+      if (!existing.mcpServers) {
+        existing.mcpServers = {};
+      }
+      if (!existing.mcpServers['agent-lock']) {
+        existing.mcpServers['agent-lock'] = agentLockEntry;
+        writeFileSync(mcpJsonPath, JSON.stringify(existing, null, 2) + '\n', 'utf-8');
+        created.push('.mcp.json (merged)');
+      } else {
+        skipped.push('.mcp.json');
+      }
+    } catch {
+      skipped.push('.mcp.json (parse error, not modified)');
+    }
   }
 
   return { created, skipped };

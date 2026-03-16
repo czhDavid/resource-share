@@ -1,3 +1,6 @@
+import { execFileSync } from 'node:child_process';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { acquire, release, status, clear } from './lock-engine.js';
 import { init } from './init.js';
@@ -294,6 +297,25 @@ program
         },
         0,
       );
+    }
+  });
+
+// ─── mcp ────────────────────────────────────────────────
+program
+  .command('mcp')
+  .description('Start the agent-lock MCP server (stdio transport)')
+  .action(() => {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const mcpServerPath = join(__dirname, 'mcp-server.js');
+
+    try {
+      execFileSync('node', [mcpServerPath], {
+        stdio: 'inherit',
+        env: process.env,
+      });
+    } catch {
+      process.exit(1);
     }
   });
 
